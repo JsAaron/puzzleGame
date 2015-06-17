@@ -23,6 +23,14 @@ function puzzleGame(contentArea, imageSrc, level) {
     this.contentLeft   = offset.left;
     this.contentTop    = offset.top
 
+    //操作的活动范围
+    this.range = {
+        top    : this.contentTop,
+        bottom : this.contentWidth + this.contentLeft,
+        right  : this.contentHeight + this.contentTop,
+        left   : this.contentLeft
+    }
+
     //定义级别难度
     this.level = {
         row: 3, //横行 x
@@ -31,7 +39,7 @@ function puzzleGame(contentArea, imageSrc, level) {
 
     //碎片快速索引
     this.$debrisMap = {};
-    this.aminTime   = 350; //记录animate动画的运动时间，默认400毫秒
+    this.aminTime   = 350; //记录animate动画的运动时间，默认350毫秒
 
     //是否动作进行中
     this.isAminRun = false
@@ -126,6 +134,12 @@ puzzleGame.prototype = {
     //==================事件处理================
 
     mousedown: function(event) {
+
+        //mouseup丢失处理
+        if (this.isClick) {
+            this.mouseup(event)
+        }
+
         //如果动画还在运行
         if(this.isAminRun) return;
 		this.isClick = true; //点击了屏幕
@@ -150,7 +164,7 @@ puzzleGame.prototype = {
         }
 
         //得到点击的索引位
-        this.startDebrisIndex = this.calculateOverlap(event.pageX, event.pageY)
+        this.startDebrisIndex = this.calculateOverlap(event.pageX, event.pageY, this.startDebrisIndex)
     },
 
     mousemove: function(event) {
@@ -166,6 +180,7 @@ puzzleGame.prototype = {
 
     //松手
     mouseup: function(event) {
+
     	if(!this.isClick) return
     	this.isClick = false
         this.$contentArea.css({
@@ -173,7 +188,7 @@ puzzleGame.prototype = {
         })
 
         //拖动结束的索引位
-        var endDebrisIndex = this.calculateOverlap(event.pageX, event.pageY)
+        var endDebrisIndex = this.calculateOverlap(event.pageX, event.pageY, this.startDebrisIndex)
 
         this.isAminRun = true;
 
@@ -310,7 +325,20 @@ puzzleGame.prototype = {
     //计算交换元素
     //计算重叠区域
     //通过坐标判断
-	calculateOverlap: function(pageX, pageY) {
+    calculateOverlap: function(pageX, pageY, startDebrisIndex) {
+
+        var range = this.range;
+        var absX = Math.abs(pageX);
+        var absY = Math.abs(pageY);
+
+        // if(startDebrisIndex){
+        //     if( absX < range.left 
+        //         || absX > range.right 
+        //         || absY < range.top 
+        //         || absY > range.bottom){
+        //         return startDebrisIndex;
+        //     }
+        // }
 
         //根据当前移动的位置，与屏幕的每个碎片图比一下，得到当前的位置比
         var col = Math.floor((pageY - this.contentTop) / this.debrisWidth),
