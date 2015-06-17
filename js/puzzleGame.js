@@ -59,7 +59,7 @@ puzzleGame.prototype = {
 
     //布局
     //3 * 3 默认
-    layer: function(xlen, ylen) {
+    layer: function(row, col) {
         var debris; //每一个碎片图片节点
         var debrisWidth  = this.debrisWidth;
         var debrisHeight = this.debrisHeight;
@@ -69,8 +69,8 @@ puzzleGame.prototype = {
         //布局的原始排序
         this.originalOrder = [];
 
-        for (var i = 0; i < xlen; i++) {
-            for (var j = 0; j < ylen; j++) {
+        for (var i = 0; i < row; i++) {
+            for (var j = 0; j < col; j++) {
                 debris = document.createElement("div");
                 debris = $(debris).css({
                     'float'                      : 'left',
@@ -92,7 +92,7 @@ puzzleGame.prototype = {
                 $fragment.append(debris)
 
                 //用来对比随机后正确的顺序
-                var index = i * ylen + j;
+                var index = i * col + j;
                 this.originalOrder.push(index);
                 //保存碎片节点合集
                 this.$debrisMap[index] = debris
@@ -104,9 +104,10 @@ puzzleGame.prototype = {
 
     //开始游戏
     startGame: function() {
-        //打乱图片
-        this.calculateRandom();
-        this.layerOrder(this.randomOrder);
+        //计算随机数
+        var randomOrder = this.calculateRandom();
+        //根据随机数随机布局
+        this.randomLayout(randomOrder);
 
         this.$contentArea.css({
             'cursor': 'pointer'
@@ -187,53 +188,54 @@ puzzleGame.prototype = {
       
     },
 
-    //切换碎片图
-    debrisExchange: function(fromIndex, toIndex) {
-        var self = this;
+    //根据索引的位置计算出当前的行列排布
+    calculateCR: function(index) {
         var levelCol = this.level.col;
-
         //判断正整数  
-        function checkRate(value) {
+        var checkRate = function(value) {
             var re = /^[1-9]+[0-9]*]*$/;
             if (!re.test(value)) {
                 return false;
             }
             return true
         }
-
         //计算行列
-        function calculateCR(index) {
-            var newLow,newRow;
-            var colValue = index / levelCol;
-            var integer  = checkRate(colValue)
-            if (integer) {
-                newRow = colValue - 1 //正好整除的情况
-            } else {
-                newRow = Math.floor(colValue)
-            }
-            //列数
-            newLow = Math.floor(index - (newRow * levelCol)) - 1;
-            return {
-                row: newRow,
-                low: newLow
-            }
+        var newLow, newRow;
+        var colValue = index / levelCol;
+        var integer = checkRate(colValue)
+        if (integer) {
+            newRow = colValue //正好整除的情况
+        } else {
+            newRow = Math.floor(colValue)
         }
+        //列数
+        newLow = Math.floor(index - (newRow * levelCol))
+        return {
+            row: newRow,
+            low: newLow
+        }
+
+    },
+
+    //切换碎片图
+    debrisExchange: function(fromIndex, toIndex) {
+        var self = this;
 
         // form的处理
         //列数
-        var crFrom = calculateCR(toIndex)
+        var crFrom = this.calculateCR(toIndex)
         var newRowFrom = crFrom.row;
         var newLowFrom = crFrom.low;
 
         // to的处理
-        var crTo = calculateCR(fromIndex)
+        var crTo =  this.calculateCR(fromIndex)
         var newRowTo = crTo.row;
         var newLowTo = crTo.low;
 
 
         //找到对应的元素
-        var $fromElment = this.$debrisMap[fromIndex - 1];
-        var $toElement = this.$debrisMap[toIndex - 1]
+        var $fromElment = this.$debrisMap[fromIndex];
+        var $toElement  = this.$debrisMap[toIndex]
 
         // 开始切换碎片图
         $fromElment.animate({
@@ -258,7 +260,10 @@ puzzleGame.prototype = {
         var completeNum = 2;
         function complete() {
             if (completeNum == 1) {
-                self.updateMap(fromIndex, toIndex, $fromElment, $toElement);
+                //更新新的数据
+                self.update(fromIndex, toIndex, $fromElment, $toElement);
+                //检测是否成功
+                self.checkSuccess();
                 self.isAminRun = false
             }
             completeNum--;
@@ -266,9 +271,26 @@ puzzleGame.prototype = {
     },
     
     //更新内部映射索引数据
-    updateMap: function(fromIndex, toIndex, $fromElment, $toElement) {
-        this.$debrisMap[fromIndex - 1] = $toElement
-        this.$debrisMap[toIndex - 1]   = $fromElment
+    update: function(fromIndex, toIndex, $fromElment, $toElement) {
+        //更新快捷索引
+        this.$debrisMap[fromIndex] = $toElement
+        this.$debrisMap[toIndex]   = $fromElment
+
+        // 更新随机索引
+        var formeOrder = this.randomOrder[fromIndex]
+        var toOrder    = this.randomOrder[toIndex]
+        this.randomOrder.splice(toIndex,1,formeOrder)                                                                                                             
+        this.randomOrder.splice(fromIndex,1,toOrder)
+    },
+
+    //检查是否成功
+    checkSuccess: function() {
+        //如果2个值相等，则排序正确
+        if (this.originalOrder.toString() == this.randomOrder.toString()) {
+            alert('成功')
+            return true;
+        }
+        return false;
     },
 
     //反弹，还原位置
@@ -302,7 +324,7 @@ puzzleGame.prototype = {
         //（上一列数 * 指定行）+ 当前行数
         var index = ( (col - 1) * this.level.col) + row
 
-        return index;
+        return index - 1; //索引从0开始算
 	},
 
     //绑定事件
@@ -337,18 +359,22 @@ puzzleGame.prototype = {
             }
             this.randomOrder.push(order);
         }
+        return this.randomOrder;
     },
 
     //随机布局
-    layerOrder: function(randomOrder) {
+    randomLayout: function(randomOrder) {
         var _$debrisMap = {};
         for (var i = 0, len = randomOrder.length; i < len; i++){ 
+            //新的下标索引位置
+            var newIndex = randomOrder[i];
+            var cr =  this.calculateCR(i)
             //变换新的位置
-            this.$debrisMap[i].animate({
-                'left' : randomOrder[i] % this.level.col * this.debrisWidth + 'px',
-                'top'  : Math.floor(randomOrder[i] / this.level.row) * this.debrisHeight + 'px'
-            }, this.aminTime);
-            _$debrisMap[randomOrder[i]] = this.$debrisMap[i]
+            this.$debrisMap[newIndex].animate({
+                'top'  : cr.row * this.debrisHeight + 'px',
+                'left' : cr.low * this.debrisWidth + 'px'
+            }, this.aminTime);  
+            _$debrisMap[i] = this.$debrisMap[newIndex]           
         }
         //更新快速索引
         this.$debrisMap = _$debrisMap;
