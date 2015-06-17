@@ -45,15 +45,18 @@ function puzzleGame(contentArea, imageSrc, level) {
     //游戏是否已经开始
     this.gameIsStart = false;
 
-    this.init();
+    //初始化创建
+    this.initCreate();
 
+    //绑定全局事件
+    this.creatEvent();
 }
 
 
 puzzleGame.prototype = {
 
     //初始化
-    init: function() {
+    initCreate: function() {
         //计算每一个碎片图片的应该有的尺寸
         this.debrieSize();
         //初始化布局3*3
@@ -110,32 +113,20 @@ puzzleGame.prototype = {
                 this.$debrisMap[index] = debris
             }
         }
-        
+
         this.$contentArea.hide().html('').append(fragment.childNodes).show();
     },
 
     //检测游戏状态
     checkGameStauts: function() {
         if (this.gameIsStart) {
-            if (!confirm('游戏中,需要重新开始？')) {
-                return false;
-            } else {
-                this.gameIsStart = false;
-                this.setLevel(3, 3)
-            }
-            return true
+            return true;
         }
     },
 
     //开始游戏
     startGame: function() {
-
-        if(this.checkGameStauts()){
-            return
-        }
-
         this.gameIsStart = true
-
         //计算随机数
         var randomOrder = this.calculateRandom();
         //根据随机数随机布局
@@ -144,11 +135,17 @@ puzzleGame.prototype = {
         this.$contentArea.css({
             'cursor': 'pointer'
         })
-
-        //绑定事件处理
-        this.creatEvent();
     },
 
+    //复位
+    reset:function(){
+
+    },
+
+    //获取游戏状态
+    getStatus:function(){
+        return this.gameIsStart
+    },
 
     //设置游戏的困难度
     setLevel: function(row, col) {
@@ -160,7 +157,7 @@ puzzleGame.prototype = {
             row: row, //横行 x
             col: col //column 竖行 y
         }
-        this.init();
+        this.initCreate();
     },
 
     //==================事件处理================
