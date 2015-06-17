@@ -171,6 +171,8 @@ puzzleGame.prototype = {
 
     mousedown: function(event) {
 
+        if(!this.gameIsStart) return
+
         //mouseup丢失处理
         if (this.isClick) {
             this.mouseup(event)
