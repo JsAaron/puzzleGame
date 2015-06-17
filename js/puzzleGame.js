@@ -37,21 +37,15 @@ function puzzleGame(contentArea, imageSrc, level) {
         col: 3  //column 竖行 y
     }
 
-    //碎片快速索引
-    this.$debrisMap = {};
     this.aminTime   = 350; //记录animate动画的运动时间，默认350毫秒
 
     //是否动作进行中
     this.isAminRun = false
 
-    //计算每一个碎片图片的应该有的尺寸
-    this.debrisWidth = this.contentWidth / this.level.row;
-    this.debrisHeight = this.contentHeight / this.level.col;
-
+    //游戏是否已经开始
+    this.gameIsStart = false;
 
     this.init();
-
-    console.log(this)
 
 }
 
@@ -60,10 +54,18 @@ puzzleGame.prototype = {
 
     //初始化
     init: function() {
+        //计算每一个碎片图片的应该有的尺寸
+        this.debrieSize();
         //初始化布局3*3
         this.layer(this.level.row, this.level.col);
     },
 
+    //计算碎片尺寸
+    //计算每一个碎片图片的应该有的尺寸
+    debrieSize: function() {
+        this.debrisWidth = this.contentWidth / this.level.row;
+        this.debrisHeight = this.contentHeight / this.level.col;
+    },
 
     //布局
     //3 * 3 默认
@@ -76,6 +78,8 @@ puzzleGame.prototype = {
         var $fragment = $(fragment);
         //布局的原始排序
         this.originalOrder = [];
+        //碎片快速索引
+        this.$debrisMap    = {}
 
         for (var i = 0; i < row; i++) {
             for (var j = 0; j < col; j++) {
@@ -106,12 +110,32 @@ puzzleGame.prototype = {
                 this.$debrisMap[index] = debris
             }
         }
-        this.$contentArea.append(fragment.childNodes);
+        
+        this.$contentArea.hide().html('').append(fragment.childNodes).show();
     },
 
+    //检测游戏状态
+    checkGameStauts: function() {
+        if (this.gameIsStart) {
+            if (!confirm('游戏中,需要重新开始？')) {
+                return false;
+            } else {
+                this.gameIsStart = false;
+                this.setLevel(3, 3)
+            }
+            return true
+        }
+    },
 
     //开始游戏
     startGame: function() {
+
+        if(this.checkGameStauts()){
+            return
+        }
+
+        this.gameIsStart = true
+
         //计算随机数
         var randomOrder = this.calculateRandom();
         //根据随机数随机布局
@@ -128,7 +152,15 @@ puzzleGame.prototype = {
 
     //设置游戏的困难度
     setLevel: function(row, col) {
-
+        if(this.checkGameStauts()){
+            return
+        }
+        //设置新的级别
+        this.level = {
+            row: row, //横行 x
+            col: col //column 竖行 y
+        }
+        this.init();
     },
 
     //==================事件处理================
@@ -180,7 +212,6 @@ puzzleGame.prototype = {
 
     //松手
     mouseup: function(event) {
-
     	if(!this.isClick) return
     	this.isClick = false
         this.$contentArea.css({
@@ -358,15 +389,13 @@ puzzleGame.prototype = {
     //绑定事件
     creatEvent: function() {
     	var self = this;
-		this.$contentArea.mousedown(function(event) {
-			self.mousedown(event)
-		})
-		this.$contentArea.mousemove(function(event) {
-			self.mousemove(event)
-		})
-		this.$contentArea.mouseup(function(event) {
-			self.mouseup(event)
-		})
+        this.$contentArea.mousedown(function(event) {
+            self.mousedown(event)
+        }).mousemove(function(event) {
+            self.mousemove(event)
+        }).mouseup(function(event) {
+            self.mouseup(event)
+        })
         return event;
     },
 
