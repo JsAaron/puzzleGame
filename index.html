@@ -34,16 +34,16 @@
 
         $('.target').change(function(evt) { 
             var $button = $("#start").find('button')
+            var $val = $.parseJSON($(this).val())
             if (pg.getStatus()) {
                 //游戏复位
                 if (!confirm('已经在游戏中，确定要重新开始？')) {
                     return false;
                 } else {
-                    pg.reset()
+                    pg.reset($val.x, $val.y)
                     $button.text('游戏开始')
                 }
             } else {
-                var $val = $.parseJSON($(this).val())
                 pg.setLevel($val.x, $val.y)
             }
         })

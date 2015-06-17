@@ -138,8 +138,15 @@ puzzleGame.prototype = {
     },
 
     //复位
-    reset:function(){
-
+    reset: function(row, low) {
+        this.gameIsStart = false;
+        this.isAminRun   = false;
+        if(row && low){
+            this.setLevel(row,low)
+            return
+        }
+        this.randomLayout(this.originalOrder, 'reset')
+        this.randomOrder = this.originalOrder; 
     },
 
     //获取游戏状态
@@ -417,17 +424,22 @@ puzzleGame.prototype = {
     },
 
     //随机布局
-    randomLayout: function(randomOrder) {
-        var _$debrisMap = {};
-        for (var i = 0, len = randomOrder.length; i < len; i++){ 
+    randomLayout: function(order, reset) {
+        var newIndex,_$debrisMap = {};
+        for (var i = 0, len = order.length; i < len; i++){ 
             //新的下标索引位置
-            var newIndex = randomOrder[i];
-            var cr =  this.calculateCR(i)
+            if (reset) {
+                newIndex = this.randomOrder.indexOf(i);
+            } else {
+                newIndex = order[i]
+            }
+            var cr = this.calculateCR(i)
             //变换新的位置
             this.$debrisMap[newIndex].animate({
                 'top'  : cr.row * this.debrisHeight + 'px',
                 'left' : cr.low * this.debrisWidth + 'px'
             }, this.aminTime);  
+
             _$debrisMap[i] = this.$debrisMap[newIndex]           
         }
         //更新快速索引
