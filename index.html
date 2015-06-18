@@ -15,37 +15,38 @@
             'images/man.jpg'
         )
 
+        //检测游戏状态
+        function checkGameStart(noGame, hasGame) {
+            if (pg.getGameStatus()) {
+                //游戏复位
+                if (confirm('已经在游戏中，确定要重新开始？')) {
+                    hasGame()
+                }
+            } else {
+                noGame()
+            }
+        }
 
         $("#start").click(function() {
             var $button = $(this).find('button')
-            if (pg.getStatus()) {
-                //游戏复位
-                if (!confirm('已经在游戏中，确定要重新开始？')) {
-                    return false;
-                } else {
-                    pg.reset()
-                    $button.text('游戏开始')
-                }
-            } else {
+            checkGameStart(function() {
                 pg.startGame()
                 $button.text('游戏中')
-            }
+            }, function() {
+                pg.resetGame()
+                $button.text('游戏开始')
+            })
         })
 
-        $('.target').change(function(evt) { 
+        $('.target').change(function(evt) {
             var $button = $("#start").find('button')
             var $val = $.parseJSON($(this).val())
-            if (pg.getStatus()) {
-                //游戏复位
-                if (!confirm('已经在游戏中，确定要重新开始？')) {
-                    return false;
-                } else {
-                    pg.reset($val.x, $val.y)
-                    $button.text('游戏开始')
-                }
-            } else {
-                pg.setLevel($val.x, $val.y)
-            }
+            checkGameStart(function() {
+                pg.setGameLevel($val.row, $val.col)
+            }, function() {
+                pg.resetGame($val.row, $val.col)
+                $button.text('游戏开始')
+            })
         })
 
     });
@@ -69,9 +70,9 @@
                 <li id="level">
                     <span><button class="button">难度选择:</button>
                         <select class="target">
-                            <option value='{"x":3,"y":3}' selected="selected">3 * 3</option>
-                            <option value='{"x":6,"y":6}'>6 * 6</option>
-                            <option value='{"x":9,"y":9}'>9 * 9</option>
+                            <option value='{"row":3,"col":3}' selected="selected">3 * 3</option>
+                            <option value='{"row":6,"col":6}'>6 * 6</option>
+                            <option value='{"row":9,"col":9}'>9 * 9</option>
                         </select>
                     </span>
                 </li>

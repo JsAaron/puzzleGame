@@ -58,45 +58,45 @@ puzzleGame.prototype = {
     //初始化
     initCreate: function() {
         //计算每一个碎片图片的应该有的尺寸
-        this.debrieSize();
-        //初始化布局3*3
-        this.layer(this.level.row, this.level.col);
+        this.debriesSize();
+        //初始化布局
+        this.initLayer(this.level.row, this.level.col);
     },
 
     //计算碎片尺寸
     //计算每一个碎片图片的应该有的尺寸
-    debrieSize: function() {
+    debriesSize: function() {
         this.debrisWidth = this.contentWidth / this.level.row;
         this.debrisHeight = this.contentHeight / this.level.col;
     },
 
     //布局
     //3 * 3 默认
-    layer: function(row, col) {
-        var debris; //每一个碎片图片节点
+    initLayer: function(row, col) {
+        var index;
+        var debrisDiv; //每一个碎片图片节点
         var debrisWidth  = this.debrisWidth;
         var debrisHeight = this.debrisHeight;
+
         //临时文档碎片
-        var fragment  = document.createElement('createDocumentFragment');
-        var $fragment = $(fragment);
+        var fragment = document.createElement('createDocumentFragment');
+        var $fragment  = $(fragment);
+
         //布局的原始排序
         this.originalOrder = [];
         //碎片快速索引
-        this.$debrisMap    = {}
+        this.$debrisMap    = {};
 
+        //生成 row * col 的矩阵
         for (var i = 0; i < row; i++) {
             for (var j = 0; j < col; j++) {
-                debris = document.createElement("div");
-                debris = $(debris).css({
+                debrisDiv = $(document.createElement('div')).css({
                     'float'                      : 'left',
                     'border'                     : '1px solid red',
                     'border-radius'              : '5px',
                     'position'                   : 'absolute',
                     'z-index'                    : 5,
                     'box-shadow'                 : '0px 0px 15px #fff',
-                    'transition-property'        : 'background-position',
-                    'transition-duration'        : '300ms', //动画参数
-                    'transition-timing-function' : 'ease-in-out',
                     'width'                      : (debrisWidth - 2) + 'px',
                     'height'                     : (debrisHeight - 2) + 'px',
                     'left'                       : j * debrisWidth + 'px',
@@ -104,17 +104,16 @@ puzzleGame.prototype = {
                     "background"                 : "url('" + this.imageSrc + "')",
                     'backgroundPosition'         : (-j) * debrisWidth + 'px ' + (-i) * debrisHeight + 'px'
                 });
-                $fragment.append(debris)
+                $fragment.append(debrisDiv)
 
                 //用来对比随机后正确的顺序
-                var index = i * col + j;
+                index = i * col + j;
                 this.originalOrder.push(index);
                 //保存碎片节点合集
-                this.$debrisMap[index] = debris
+                this.$debrisMap[index] = debrisDiv
             }
         }
-
-        this.$contentArea.hide().html('').append(fragment.childNodes).show();
+        this.$contentArea.html('').append(fragment.childNodes);
     },
 
     //检测游戏状态
@@ -138,24 +137,26 @@ puzzleGame.prototype = {
     },
 
     //复位
-    reset: function(row, low) {
+    resetGame: function(row, low) {
         this.gameIsStart = false;
         this.isAminRun   = false;
         if(row && low){
-            this.setLevel(row,low)
+            this.setGameLevel(row,low)
             return
         }
-        this.randomLayout(this.originalOrder, 'reset')
+        //复位布局
+        this.restLayout(this.originalOrder)
+        //更新randomOrder值
         this.randomOrder = this.originalOrder; 
     },
 
     //获取游戏状态
-    getStatus:function(){
+    getGameStatus:function(){
         return this.gameIsStart
     },
 
     //设置游戏的困难度
-    setLevel: function(row, col) {
+    setGameLevel: function(row, col) {
         if(this.checkGameStauts()){
             return
         }
@@ -426,25 +427,41 @@ puzzleGame.prototype = {
     },
 
     //随机布局
-    randomLayout: function(order, reset) {
-        var newIndex,_$debrisMap = {};
-        for (var i = 0, len = order.length; i < len; i++){ 
-            //新的下标索引位置
-            if (reset) {
-                newIndex = this.randomOrder.indexOf(i);
-            } else {
-                newIndex = order[i]
-            }
-            var cr = this.calculateCR(i)
-            //变换新的位置
-            this.$debrisMap[newIndex].animate({
-                'top'  : cr.row * this.debrisHeight + 'px',
-                'left' : cr.low * this.debrisWidth + 'px'
-            }, this.aminTime);  
+    randomLayout: function(order) {
+        this.cycleLayout(order, function(i) {
+            return order[i];
+        })
+    },
 
-            _$debrisMap[i] = this.$debrisMap[newIndex]           
+    //复位布局
+    restLayout: function(order) {
+        this.cycleLayout(order, function(i) {
+            return this.randomOrder.indexOf(i)
+        })
+    },
+
+    //计算布局
+    cycleLayout:function(order,callback){
+        var newIndex, i = 0,
+            tempMap = {}; //临时存储新的索引
+        for (i, len = order.length; i < len; i++) {
+            newIndex = callback.call(this,i);
+            this.setLayout(i, newIndex)
+            tempMap[i] = this.$debrisMap[newIndex]
         }
         //更新快速索引
-        this.$debrisMap = _$debrisMap;
+        this.$debrisMap = tempMap;
+    },
+
+    //设置布局
+    setLayout: function(i, index) {
+        //获取到矩阵排列
+        var cr = this.calculateCR(i)
+        //变换新的位置
+        this.$debrisMap[index].animate({
+            'top'  : cr.row * this.debrisHeight + 'px',
+            'left' : cr.low * this.debrisWidth + 'px'
+        }, this.aminTime);
     }
+
 }
