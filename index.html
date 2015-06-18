@@ -30,7 +30,9 @@
         $("#start").click(function() {
             var $button = $(this).find('button')
             checkGameStart(function() {
-                pg.startGame()
+                pg.startGame(function(){
+                    alert('真棒，这都没难倒你，恭喜成功完成本次游戏！！！')
+                })
                 $button.text('游戏中')
             }, function() {
                 pg.resetGame()

@@ -31,12 +31,6 @@ function puzzleGame(contentArea, imageSrc, level) {
         left   : this.contentLeft
     }
 
-    //定义级别难度
-    this.level = {
-        row: 3, //横行 x
-        col: 3  //column 竖行 y
-    }
-
     this.aminTime   = 350; //记录animate动画的运动时间，默认350毫秒
 
     //是否动作进行中
@@ -46,7 +40,7 @@ function puzzleGame(contentArea, imageSrc, level) {
     this.gameIsStart = false;
 
     //初始化创建
-    this.initCreate();
+    this.initCreate(3, 3);
 
     //绑定全局事件
     this.creatEvent();
@@ -56,11 +50,23 @@ function puzzleGame(contentArea, imageSrc, level) {
 puzzleGame.prototype = {
 
     //初始化
-    initCreate: function() {
+    initCreate: function(row, col) {
+
+        //定义级别难度
+        //二位矩阵
+        //0 1 2
+        //3 4 5
+        //6 7 8
+        this.level = {
+            row: row, //横行 x
+            col: col //column 竖行 
+        }
+
         //计算每一个碎片图片的应该有的尺寸
         this.debriesSize();
+
         //初始化布局
-        this.initLayer(this.level.row, this.level.col);
+        this.initLayer(row, col);
     },
 
     //计算碎片尺寸
@@ -124,7 +130,10 @@ puzzleGame.prototype = {
     },
 
     //开始游戏
-    startGame: function() {
+    startGame: function(successCallback) {
+        //成功回调
+        this.successCallback = successCallback;
+
         this.gameIsStart = true
         //计算随机数
         var randomOrder = this.calculateRandom();
@@ -160,12 +169,7 @@ puzzleGame.prototype = {
         if(this.checkGameStauts()){
             return
         }
-        //设置新的级别
-        this.level = {
-            row: row, //横行 x
-            col: col //column 竖行 y
-        }
-        this.initCreate();
+        this.initCreate(row, col);
     },
 
     //==================事件处理================
@@ -339,8 +343,9 @@ puzzleGame.prototype = {
     //检查是否成功
     checkSuccess: function() {
         //如果2个值相等，则排序正确
+        //执行成功回调
         if (this.originalOrder.toString() == this.randomOrder.toString()) {
-            alert('成功')
+            this.successCallback && this.successCallback();
             return true;
         }
         return false;
