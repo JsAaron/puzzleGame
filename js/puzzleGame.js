@@ -33,8 +33,8 @@ function puzzleGame(contentArea, imageSrc, level) {
     //操作的活动范围
     this.range = {
         top    : this.contentTop,
-        bottom : this.contentWidth + this.contentLeft,
-        right  : this.contentHeight + this.contentTop,
+        bottom : this.contentHeight + this.contentTop,
+        right  : this.contentWidth + this.contentLeft,
         left   : this.contentLeft
     }
 
@@ -183,17 +183,17 @@ puzzleGame.prototype = {
     //==================事件处理================
 
     mousedown: function(event) {
-
+        this.stpoBehavior(event);
         if(!this.isGameStatus) return
 
         //mouseup丢失处理
         if (this.isClick) {
-            this.mouseup(event)
+            // this.mouseup(event)
         }
 
         //如果动画还在运行
         if(this.isAminRun) return;
-		this.isClick = true; //点击了屏幕
+
         this.$contentArea.css({
             'cursor': 'move'
         })
@@ -215,7 +215,10 @@ puzzleGame.prototype = {
         }
 
         //得到点击的索引位
-        this.startDebrisIndex = this.calculateOverlap(event.pageX, event.pageY, this.startDebrisIndex)
+        this.startDebrisIndex = this.calculateOverlap(event, this.startDebrisIndex)
+
+        //开始触发动画
+        this.isClick = true; 
     },
 
     //处理hover效果
@@ -236,6 +239,7 @@ puzzleGame.prototype = {
     },
 
     mousemove: function(event) {
+        this.stpoBehavior(event);
         //增加hover效果
         this.styleHover()
     	if(!this.isClick) return
@@ -250,6 +254,7 @@ puzzleGame.prototype = {
 
     //松手
     mouseup: function(event) {
+        this.stpoBehavior(event);
     	if(!this.isClick) return
     	this.isClick = false
         this.$contentArea.css({
@@ -257,7 +262,7 @@ puzzleGame.prototype = {
         })
 
         //拖动结束的索引位
-        var endDebrisIndex = this.calculateOverlap(event.pageX, event.pageY, this.startDebrisIndex)
+        var endDebrisIndex = this.calculateOverlap(event, this.startDebrisIndex)
 
         this.isAminRun = true;
 
@@ -269,6 +274,13 @@ puzzleGame.prototype = {
             //切换碎片图
             this.debrisExchange(this.startDebrisIndex,endDebrisIndex)
         }
+    },
+
+    //去掉默认行为
+    //引起事件丢失的问题
+    stpoBehavior: function(event) {
+        event.preventDefault();
+        event.stopPropagation();
     },
 
     //反弹，还原位置
@@ -388,18 +400,56 @@ puzzleGame.prototype = {
     },
 
 
+    //计算是否溢出
+    calculateOverflow:function(event){
+        var offsetX = event.offsetX
+        var offsetY = event.offsetY
+        var pageX   = event.pageX
+        var pageY   = event.pageY
+        var range   = this.range;
+
+        //允许溢出的最大宽度范围
+        var overflowWidth = this.debrisWidth / 3;
+        var overflowHegith = this.debrisHeight / 3;
+
+        //左边的偏移量
+        var offsetLeft   = pageX - offsetX;
+        var offsetRight  = pageX + (this.debrisWidth - offsetX);
+        var offsetTop    = pageY - offsetY
+        var offsetBottom = pageY + (this.debrisHeight - offsetY);
+
+        //左边边界
+        if (offsetLeft < (range.left - overflowWidth)) {
+            return true;
+        }
+        //右边边界
+        if (offsetRight > (range.right + overflowWidth)) {
+            return true;
+        }
+        //顶部边界
+        if (offsetTop < (range.top - overflowHegith)) {
+            return true;
+        }
+        //底部边界
+        if (offsetBottom > (range.bottom + overflowHegith)) {
+            return true;
+        }
+    },
+
+
     //计算交换元素
     //计算重叠区域
     //通过坐标判断
-    calculateOverlap: function(pageX, pageY, startDebrisIndex) {
+    calculateOverlap: function(event, startDebrisIndex) {
 
-        var range = this.range;
-        var absX = Math.abs(pageX);
-        var absY = Math.abs(pageY);
+        //如果溢出了,返回原地
+        if(this.calculateOverflow(event)){
+            return startDebrisIndex;
+        }
 
         //根据当前移动的位置，与屏幕的每个碎片图比一下，得到当前的位置比
-        var col = Math.floor((pageY - this.contentTop) / this.debrisWidth),
-            row = Math.floor((pageX - this.contentLeft) / this.debrisHeight);
+        var col = Math.floor((event.pageY - this.contentTop) / this.debrisWidth),
+            row = Math.floor((event.pageX - this.contentLeft) / this.debrisHeight);
 
         //从整数1开始算起
         col = col + 1; //列
