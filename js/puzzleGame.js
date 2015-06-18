@@ -99,12 +99,6 @@ puzzleGame.prototype = {
         for (var i = 0; i < row; i++) {
             for (var j = 0; j < col; j++) {
                 debrisDiv = $(document.createElement('div')).css({
-                    'float'                      : 'left',
-                    'border'                     : '1px solid red',
-                    'border-radius'              : '5px',
-                    'position'                   : 'absolute',
-                    'z-index'                    : 5,
-                    'box-shadow'                 : '0px 0px 15px #fff',
                     'width'                      : (debrisWidth - 2) + 'px',
                     'height'                     : (debrisHeight - 2) + 'px',
                     'left'                       : j * debrisWidth + 'px',

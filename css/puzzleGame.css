@@ -34,12 +34,10 @@ body {
     position: relative;
 }
 
-
 #wrap #left ul li#gameRule p {
     height: 30px;
     font-size: 15px;
 }
-
 
 #start {
     float: left;
@@ -64,6 +62,15 @@ body {
     height: 509px;
     position: relative;
     top: 40px;
+}
+
+#imgArea div {
+    float         : left;
+    border        : 1px solid red;
+    border-radius : 5px;
+    position      : absolute;
+    z-index       : 5;
+    box-shadow    : 0px 0px 15px #fff;
 }
 
 #imgArea div.hover {
