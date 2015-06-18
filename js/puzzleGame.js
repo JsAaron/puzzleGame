@@ -15,10 +15,11 @@ function puzzleGame(contentArea, imageSrc, level) {
     this.$contentArea = $(contentArea)
     this.imageSrc = imageSrc;
 
-    //显示区域的尺寸
+    //区域尺寸
     this.contentWidth  = parseInt(this.$contentArea.css('width'))
     this.contentHeight = parseInt(this.$contentArea.css('Height'))
 
+    //区域布局
     var offset = this.$contentArea.offset()
     this.contentLeft   = offset.left;
     this.contentTop    = offset.top
@@ -31,13 +32,14 @@ function puzzleGame(contentArea, imageSrc, level) {
         left   : this.contentLeft
     }
 
-    this.aminTime   = 350; //记录animate动画的运动时间，默认350毫秒
+    //默认动画的运动时间
+    this.aminTime   = 350; 
 
     //是否动作进行中
     this.isAminRun = false
 
     //游戏是否已经开始
-    this.gameIsStart = false;
+    this.isGameStatus = false;
 
     //初始化创建
     this.initCreate(3, 3);
@@ -124,7 +126,7 @@ puzzleGame.prototype = {
 
     //检测游戏状态
     checkGameStauts: function() {
-        if (this.gameIsStart) {
+        if (this.isGameStatus) {
             return true;
         }
     },
@@ -134,7 +136,7 @@ puzzleGame.prototype = {
         //成功回调
         this.successCallback = successCallback;
 
-        this.gameIsStart = true
+        this.isGameStatus = true
         //计算随机数
         var randomOrder = this.calculateRandom();
         //根据随机数随机布局
@@ -147,7 +149,7 @@ puzzleGame.prototype = {
 
     //复位
     resetGame: function(row, low) {
-        this.gameIsStart = false;
+        this.isGameStatus = false;
         this.isAminRun   = false;
         if(row && low){
             this.setGameLevel(row,low)
@@ -161,7 +163,7 @@ puzzleGame.prototype = {
 
     //获取游戏状态
     getGameStatus:function(){
-        return this.gameIsStart
+        return this.isGameStatus
     },
 
     //设置游戏的困难度
@@ -176,7 +178,7 @@ puzzleGame.prototype = {
 
     mousedown: function(event) {
 
-        if(!this.gameIsStart) return
+        if(!this.isGameStatus) return
 
         //mouseup丢失处理
         if (this.isClick) {
@@ -194,7 +196,7 @@ puzzleGame.prototype = {
 
         //提供移动层级
 		this.element.css({
-			'z-index': '40'
+			'z-index': '9999'
 		})
 
 		this.orgLeft = parseInt(this.element.css('left'))
@@ -210,7 +212,26 @@ puzzleGame.prototype = {
         this.startDebrisIndex = this.calculateOverlap(event.pageX, event.pageY, this.startDebrisIndex)
     },
 
+    //处理hover效果
+    styleHover: function() {
+        if(!this.isGameStatus) return;
+        //如果还是同一个区域
+        if (this.preTarget == event.target) {
+            if (!this.toheavy) { //去重复
+                //增加移动样式
+                $(event.target).addClass('hover');
+                this.toheavy = true;
+            }
+        } else {
+            $(this.preTarget).removeClass('hover')
+            this.toheavy = false;
+        }
+        this.preTarget = event.target
+    },
+
     mousemove: function(event) {
+        //增加hover效果
+        this.styleHover()
     	if(!this.isClick) return
 		var deltaX = event.pageX - this.start.pageX;
 		var deltaY = event.pageY - this.start.pageY;
@@ -242,7 +263,6 @@ puzzleGame.prototype = {
             //切换碎片图
             this.debrisExchange(this.startDebrisIndex,endDebrisIndex)
         }
-      
     },
 
     //根据索引的位置计算出当前的行列排布
@@ -303,8 +323,7 @@ puzzleGame.prototype = {
             complete();
         });
 
-        $toElement.animate({
-            'z-index' : 80,
+        $toElement.css('z-index', '9998').animate({
             'top'     : newRowTo * this.debrisHeight + 'px',
             'left'    : newLowTo * this.debrisWidth + 'px'
         }, this.moveTime, function() {
@@ -374,15 +393,6 @@ puzzleGame.prototype = {
         var absX = Math.abs(pageX);
         var absY = Math.abs(pageY);
 
-        // if(startDebrisIndex){
-        //     if( absX < range.left 
-        //         || absX > range.right 
-        //         || absY < range.top 
-        //         || absY > range.bottom){
-        //         return startDebrisIndex;
-        //     }
-        // }
-
         //根据当前移动的位置，与屏幕的每个碎片图比一下，得到当前的位置比
         var col = Math.floor((pageY - this.contentTop) / this.debrisWidth),
             row = Math.floor((pageX - this.contentLeft) / this.debrisHeight);
@@ -397,19 +407,6 @@ puzzleGame.prototype = {
 
         return index - 1; //索引从0开始算
 	},
-
-    //绑定事件
-    creatEvent: function() {
-    	var self = this;
-        this.$contentArea.mousedown(function(event) {
-            self.mousedown(event)
-        }).mousemove(function(event) {
-            self.mousemove(event)
-        }).mouseup(function(event) {
-            self.mouseup(event)
-        })
-        return event;
-    },
 
     //计算下随机布局排序
     calculateRandom: function() {
@@ -467,6 +464,24 @@ puzzleGame.prototype = {
             'top'  : cr.row * this.debrisHeight + 'px',
             'left' : cr.low * this.debrisWidth + 'px'
         }, this.aminTime);
+    },
+
+    //绑定事件
+    creatEvent: function() {
+        var self = this;
+        this.$contentArea.mousedown(function(event) {
+            self.mousedown(event)
+        }).mousemove(function(event) {
+            self.mousemove(event)
+        }).mouseup(function(event) {
+            self.mouseup(event)
+        })
+        return event;
+    },
+
+    //销毁
+    destroy: function() {
+        this.$contentArea.off();
     }
 
 }
