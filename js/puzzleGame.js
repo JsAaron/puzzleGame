@@ -259,6 +259,19 @@ puzzleGame.prototype = {
         }
     },
 
+    //反弹，还原位置
+    restorePosition: function(element) {
+        var self = this;
+        element.animate({
+            'top'  : this.orgTop + 'px',
+            'left' : this.orgLeft + 'px'
+        }, this.moveTime, function() {
+            //动画结束后,恢复层级关系
+            $(this).css('z-index', '10');
+            self.isAminRun = false
+        });
+    },
+
     //根据索引的位置计算出当前的行列排布
     calculateCR: function(index) {
         var levelCol = this.level.col;
@@ -293,7 +306,6 @@ puzzleGame.prototype = {
         var self = this;
 
         // form的处理
-        //列数
         var crFrom = this.calculateCR(toIndex)
         var newRowFrom = crFrom.row;
         var newLowFrom = crFrom.low;
@@ -325,7 +337,6 @@ puzzleGame.prototype = {
             complete();
         });
 
-     
         //切换动画完成后处理
         var completeNum = 2;
         function complete() {
@@ -362,19 +373,6 @@ puzzleGame.prototype = {
             return true;
         }
         return false;
-    },
-
-    //反弹，还原位置
-    restorePosition: function(element) {
-        var self = this;
-        element.animate({
-            'top'  : this.orgTop + 'px',
-            'left' : this.orgLeft + 'px'
-        }, this.moveTime, function() {
-            //动画结束后,恢复层级关系
-            $(this).css('z-index', '10');
-            self.isAminRun = false
-        });
     },
 
 
