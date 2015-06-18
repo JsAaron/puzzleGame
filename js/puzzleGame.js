@@ -47,8 +47,14 @@ function puzzleGame(contentArea, imageSrc, level) {
     //游戏是否已经开始
     this.isGameStatus = false;
 
+    //默认难度级别
+    var defaultLevel = {
+        row: level ? level.row : 3,
+        low: level ? level.low : 3
+    }
+
     //初始化创建
-    this.initCreate(level.row || 3, level.low || 3);
+    this.initCreate(defaultLevel.row, defaultLevel.low);
 
     //绑定全局事件
     this.creatEvent();
