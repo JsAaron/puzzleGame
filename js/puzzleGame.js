@@ -7,6 +7,12 @@
  * 拼图游戏构造器
  * contentArea 文本区域
  * imageSrc	   图片地址
+ * level       游戏默认等级
+ *  row * low
+ *    3 * 3  矩阵布局
+ *      0 1 2 
+ *      3 4 5
+ *      6 7 6
  * @return {[type]} [description]
  */
 function puzzleGame(contentArea, imageSrc, level) {
@@ -42,7 +48,7 @@ function puzzleGame(contentArea, imageSrc, level) {
     this.isGameStatus = false;
 
     //初始化创建
-    this.initCreate(3, 3);
+    this.initCreate(level.row || 3, level.low || 3);
 
     //绑定全局事件
     this.creatEvent();
