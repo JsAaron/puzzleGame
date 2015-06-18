@@ -45,7 +45,7 @@ function puzzleGame(contentArea, imageSrc, level) {
     this.isAminRun = false
 
     //游戏是否已经开始
-    this.isGameStatus = false;
+    this.isProgramStatus = false;
 
     //默认难度级别
     var defaultLevel = {
@@ -132,7 +132,7 @@ puzzleGame.prototype = {
 
     //检测游戏状态
     checkGameStauts: function() {
-        if (this.isGameStatus) {
+        if (this.isProgramStatus) {
             return true;
         }
     },
@@ -142,7 +142,7 @@ puzzleGame.prototype = {
         //成功回调
         this.successCallback = successCallback;
 
-        this.isGameStatus = true
+        this.isProgramStatus = true
         //计算随机数
         var randomOrder = this.calculateRandom();
         //根据随机数随机布局
@@ -155,7 +155,7 @@ puzzleGame.prototype = {
 
     //复位
     resetGame: function(row, low) {
-        this.isGameStatus = false;
+        this.isProgramStatus = false;
         this.isAminRun   = false;
         if(row && low){
             this.setGameLevel(row,low)
@@ -169,7 +169,7 @@ puzzleGame.prototype = {
 
     //获取游戏状态
     getGameStatus:function(){
-        return this.isGameStatus
+        return this.isProgramStatus
     },
 
     //设置游戏的困难度
@@ -183,15 +183,20 @@ puzzleGame.prototype = {
     //==================事件处理================
 
     mousedown: function(event) {
-        if(!this.isGameStatus) return
-
-        //mouseup丢失处理
-        if (this.isClick) {
-            // this.mouseup(event)
-        }
+        //必须开始程序
+        if(!this.isProgramStatus) return
 
         //如果动画还在运行
         if(this.isAminRun) return;
+
+        //mouseup丢失处理
+        if (this.isClick) {
+            this.restorePosition($(event.target));
+            this.isClick = false;
+            return;
+        }
+        //开始触发动画
+        this.isClick = true; 
 
         this.$contentArea.css({
             'cursor': 'move'
@@ -215,14 +220,11 @@ puzzleGame.prototype = {
 
         //得到点击的索引位
         this.startDebrisIndex = this.calculateOverlap(event, this.startDebrisIndex)
-
-        //开始触发动画
-        this.isClick = true; 
     },
 
     //处理hover效果
     styleHover: function() {
-        if(!this.isGameStatus) return;
+        if(!this.isProgramStatus) return;
         //如果还是同一个区域
         if (this.preTarget == event.target) {
             if (!this.toheavy) { //去重复
