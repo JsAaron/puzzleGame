@@ -111,12 +111,12 @@ puzzleGame.prototype = {
         for (var i = 0; i < row; i++) {
             for (var j = 0; j < col; j++) {
                 debrisDiv = $(document.createElement('div')).css({
-                    'width'                      : (debrisWidth - 2) + 'px',
-                    'height'                     : (debrisHeight - 2) + 'px',
-                    'left'                       : j * debrisWidth + 'px',
-                    'top'                        : i * debrisHeight + 'px',
-                    "background"                 : "url('" + this.imageSrc + "')",
-                    'backgroundPosition'         : (-j) * debrisWidth + 'px ' + (-i) * debrisHeight + 'px'
+                    'width'              : (debrisWidth - 2) + 'px',
+                    'height'             : (debrisHeight - 2) + 'px',
+                    'left'               : j * debrisWidth + 'px',
+                    'top'                : i * debrisHeight + 'px',
+                    "background"         : "url('" + this.imageSrc + "')",
+                    'backgroundPosition' : (-j) * debrisWidth + 'px ' + (-i) * debrisHeight + 'px'
                 });
                 $fragment.append(debrisDiv)
 
