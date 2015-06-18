@@ -183,7 +183,6 @@ puzzleGame.prototype = {
     //==================事件处理================
 
     mousedown: function(event) {
-        this.stpoBehavior(event);
         if(!this.isGameStatus) return
 
         //mouseup丢失处理
@@ -239,7 +238,6 @@ puzzleGame.prototype = {
     },
 
     mousemove: function(event) {
-        this.stpoBehavior(event);
         //增加hover效果
         this.styleHover()
     	if(!this.isClick) return
@@ -254,7 +252,6 @@ puzzleGame.prototype = {
 
     //松手
     mouseup: function(event) {
-        this.stpoBehavior(event);
     	if(!this.isClick) return
     	this.isClick = false
         this.$contentArea.css({
@@ -274,13 +271,6 @@ puzzleGame.prototype = {
             //切换碎片图
             this.debrisExchange(this.startDebrisIndex,endDebrisIndex)
         }
-    },
-
-    //去掉默认行为
-    //引起事件丢失的问题
-    stpoBehavior: function(event) {
-        event.preventDefault();
-        event.stopPropagation();
     },
 
     //反弹，还原位置
@@ -522,12 +512,22 @@ puzzleGame.prototype = {
 
     //绑定事件
     creatEvent: function() {
+        //去掉默认行为
+        //引起事件丢失的问题
+        var stopBehavior = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
         var self = this;
         this.$contentArea.mousedown(function(event) {
+            stopBehavior(event)
             self.mousedown(event)
         }).mousemove(function(event) {
+            stopBehavior(event)
             self.mousemove(event)
         }).mouseup(function(event) {
+            stopBehavior(event)
             self.mouseup(event)
         })
         return event;
