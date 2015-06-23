@@ -223,7 +223,7 @@ puzzleGame.prototype = {
     },
 
     //处理hover效果
-    styleHover: function() {
+    styleHover: function(event) {
         if(!this.isProgramStatus) return;
         //如果还是同一个区域
         if (this.preTarget == event.target) {
@@ -241,7 +241,7 @@ puzzleGame.prototype = {
 
     mousemove: function(event) {
         //增加hover效果
-        this.styleHover()
+        this.styleHover(event)
     	if(!this.isClick) return
 		var deltaX = event.pageX - this.start.pageX;
 		var deltaY = event.pageY - this.start.pageY;
@@ -532,7 +532,6 @@ puzzleGame.prototype = {
             stopBehavior(event)
             self.mouseup(event)
         })
-        return event;
     },
 
     //销毁
